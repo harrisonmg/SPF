@@ -41,7 +41,10 @@ GFXBUILD	:=	$(BUILD)
 #ROMFS		:=	romfs
 #GFXBUILD	:=	$(ROMFS)/gfx
 
-NO_SMDH="nope"
+#APP_TITLE:="Stuck Pixel Fixer"
+#APP_DESCRIPTION:="Fix stuck pixels!"
+#APP_AUTHOR:="harrisonmg"
+#ICON:="rgb.png"
 
 #---------------------------------------------------------------------------------
 # options for code generation
