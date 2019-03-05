@@ -2,23 +2,27 @@
 #include <citro2d.h>
 #include <stdio.h>
 
+// draw a single color on an entire render target
 void drawColorOnScreen(C3D_RenderTarget* screen, u32 color)
 {
+    // just need to clear the screen to the target color and begin the scene
     C2D_TargetClear(screen, color);
     C2D_SceneBegin(screen);
 }
 
 int main(int argc, char **argv)
 {
+    // graphics initialization
     gfxInitDefault();
     C3D_Init(C3D_DEFAULT_CMDBUF_SIZE);
     C2D_Init(C2D_DEFAULT_MAX_OBJECTS);
     C2D_Prepare();
 
+    // top and bottom screen render targets
     C3D_RenderTarget* top    = C2D_CreateScreenTarget(GFX_TOP, GFX_LEFT);
     C3D_RenderTarget* bottom = C2D_CreateScreenTarget(GFX_BOTTOM, GFX_LEFT);
 
-    //Initialize console on top screen. Using NULL as the second argument tells the console library to use the internal console structure as current one
+    // initialize console on top screen and print out intro message
     consoleInit(GFX_TOP, NULL);
     printf("\n");
     printf("Welcome to the stuck pixel fixer!\n");
@@ -41,51 +45,55 @@ int main(int argc, char **argv)
     // wait for initial touch or exit
     while (aptMainLoop())
     {
-        //Scan all the inputs. This should be done once for each frame
+        // scan all inputs
         hidScanInput();
 
-        //hidKeysDown returns information about which buttons have been just pressed (and they weren't in the previous frame)
+        // get key presses
         u32 kDown = hidKeysDown();
 
+        // exit to homebrew menu on start
         if (kDown & KEY_START)
         {
-            // Exit services
             gfxExit();
             return 0;
         }
 
-        u32 kHeld = hidKeysHeld();
-
-        if (kHeld & KEY_TOUCH) break;
+        // exit to rest of program on touch
+        if (kDown & KEY_TOUCH) break;
     }
 
+    // exit and re-init graphics, only way to remove console that I could find
     gfxExit();
     gfxInitDefault();
 
+    // track current display color
     int color = 0;
 
+    // predefined colors in u32 form
     u32 black = C2D_Color32(0x00, 0x00, 0x00, 0xFF);
     u32 red   = C2D_Color32(0xFF, 0x00, 0x00, 0xFF);
     u32 green = C2D_Color32(0x00, 0xFF, 0x00, 0xFF);
     u32 blue  = C2D_Color32(0x00, 0x00, 0xFF, 0xFF);
 
-    // Main loop
+    // main loop
     while (aptMainLoop())
     {
-        //Scan all the inputs. This should be done once for each frame
+        // scan all inputs
         hidScanInput();
 
-        //hidKeysDown returns information about which buttons have been just pressed (and they weren't in the previous frame)
+        // get key presses
         u32 kDown = hidKeysDown();
 
-        if (kDown & KEY_START) break; // break in order to return to hbmenu
+        // break on start to return to homebrew menu
+        if (kDown & KEY_START) break;
 
+        // get held keys
         u32 kHeld = hidKeysHeld();
 
-        // begin the frame
+        // begin the drawing frame
         C3D_FrameBegin(C3D_FRAME_SYNCDRAW);
 
-        // draw either black or cycle colors
+        // draw either black or cycle colors, depending on touch
         if (kHeld & KEY_TOUCH)
         {
             // display black
@@ -94,6 +102,7 @@ int main(int argc, char **argv)
         }
         else
         {
+            // display for 4 frames each, visually seems to be a good cycle speed
             switch (color)
             {
                 case 0 ... 3:
@@ -119,12 +128,10 @@ int main(int argc, char **argv)
                     break;
             }
         }
-
-        // end the frame
+        // end the drawing frame
         C3D_FrameEnd(0);
     }
-
-    // Exit services
+    // exit services
     C2D_Fini();
     C3D_Fini();
     gfxExit();
